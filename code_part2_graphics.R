@@ -1,4 +1,4 @@
-#####Welcome to Day Two#####
+#####Welcome to Part Two#####
 ##Installations##
 # installation only required once per computer
 install.packages('tidyverse')
@@ -305,33 +305,3 @@ dev.off()
 # Alternative way to save ggplot2 plots
 ggsave("myplot.pdf")
 # default behaviour - saves last plot created with ggplot2
-
-##Shiny##
-install.packages("shiny")
-library("shiny")
-# Visit this site for preview: https://dickinslab.shinyapps.io/shinydev/
-
-# Now you need to go find the other script files
-# Start with shiny_ex1.R
-
-# Here is a copy of the shiny template fyi
-library(shiny)
-ui <- fluidPage()
-server <- function(input, output) {}
-shinyApp(ui = ui, server = server)
-
-# We move on to shiny_ex2.R
-
-# Vision Example (with ggplot2)
-optics <- read.csv('prescription.csv')
-optics
-str(optics$date)
-optics$date <- as.Date(optics$date, format="%d/%m/%Y")
-
-# Plotting my vision
-ggplot(optics, aes(x=date, y=axis, group=eye, fill=eye)) +
-  geom_bar(stat="identity", position="dodge", colour="black") +
-  scale_fill_manual(values=c("mistyrose", "lightblue"))
-
-# Now please look at app.R. This contains the above code in it with slight modifications.
-# We will now publish this to our own web pages so everyone can share my vision!
