@@ -1,0 +1,155 @@
+---
+title: "R Seminar Part 2: Univariate Categorical Data"
+author: "Dr Ben Dickins"
+date: "16/12/2020"
+output:
+  html_document: default
+  pdf_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_knit$set(root.dir = "/Users/bio3dickib/Library/Mobile Documents/com~apple~CloudDocs/Github/revanent/graphs/")
+```
+
+## 1. Introduction
+In this section we will focus on univariate categorical data in R.
+
+## 2. Setup
+### 2.1. Download Data
+If everything went well in the last worksheet you should now have access to this file:
+
+- `student_grades.csv`
+
+Let's move on...
+
+### 2.2 Quick Look
+Have a look again at this file using a text editor? You may also want to open it using a spreadsheet program such as Microsoft Excel, but remember not to save any changes!
+
+This dataset is the outcome of 10,000 fictional students taking a fictional exam which is graded from A to F.
+
+### 2.3. Other Steps (Repeated)
+The  `setwd()` command from the last worksheet doesn't need to be repeated because we're in the same location on our machine.
+
+Likewise we should already have the required library loaded:
+```{r library}
+library(tidyverse)
+```
+
+## 3. Loading and Inspecting our Data
+Now we're set up and it's time to load the data into R.
+
+### 3.1. Load Die Roll Data
+We will begin by loading in the dataset containing categorical data. Again, remember just to type in what is in the grey box (not the white boxes which show output):
+```{r load}
+StudentGrades <- read_csv("student_grades.csv")
+```
+
+### 3.2. Examine Tibble
+Let's take a look at the `StudentGrades` tibble. To do that you can just type its name
+
+```{r cat}
+StudentGrades
+```
+Can you remember the other methods for looking at your tibble?
+
+### 3.3. Examine Variable
+It looks like the `grade` column is the interesting one. The `studentID` column is just the anonymous student ID and we are not particularly interested in that here. Let's start by taking a look at the `grade` column. Do you remember how we did that last time? Let's try a different method this time:
+
+```{r colref, attr.output='style="max-height: 100px;"'}
+select(StudentGrades, grade)
+```
+
+You see that the select command displays the data a little differently (in fact as a new tibble) but it has allowed us to select our column of choice.
+
+How much data was there? Last time we used the `length()` function to find out, This time:
+```{r length}
+nrow(StudentGrades)
+```
+
+Yes there are 10,000 entries which is represents a large number of fictional students!
+
+
+Let's find out the mean:
+```{r mean}
+mean(StudentGrades$grade)
+```
+
+Unfortunately this produces an error and that's because it doesn't make much sense to talk about the mean of a variable like `grades`. However we can use the `summary()` function to learn more:
+```{r}
+summary(factor(StudentGrades$grade))
+```
+
+Although the result looks good - it is a count of how many student received each grade - you might be unsure why we also used the `factor()` function inside the `summary()` command. Let's worry about that a bit later, but for now you can learn a bit more about the `summary()` like this:
+```{r}
+?summary
+```
+
+We'll come back to this tibble in a bit.
+
+## 4. Refresher on Tyoes of Object in R
+Let's understand types of variable in R a bit better. There are a few basic object types in R and these include:
+
+- character (just text in quotes "like this"),
+- numeric (or "double"-digit precision numbers in tidyverse),
+- integer (just the whole numbers, no decimals),
+- factor (a variable with categories, which can be ordered or not),
+- datetime, and
+- logical (also known as Boolean) objects.
+
+Now reading data so that all the columns are parsed (converted) into the right type of object is actually quite complicated. Fortunately `read_csv()` usually guesses really well if you have sensibly named data.
+
+Just to show how it can be a bit complex to do it manually, here we are telling `read_csv` explicitly about each input variable:
+```{r betterload}
+FormattedGrades <- read_csv("student_grades.csv", col_types = cols(studentID = col_character(), grade = col_factor(levels = toupper(letters[1:6]), ordered=TRUE)))
+```
+
+Don't worry if that is a bit complex but hopefully you can see that the `grade` column is now being treated as an ordered factor which is more sensible than before. You might want to try typing in `toupper(letters[1:6])`, `letters[1:6]` or just `letters`, to understand that bit. Can you see how everything is nested?
+
+So the following command will work again now without the `factor()` function:
+
+```{r bettersummary}
+summary(FormattedGrades$grade)
+```
+
+(What we were doing in section 3.3 with `factor()` was **coercing** the variable into a factor. Now we've just made sure we read the variable in as a _ordered_ factor in the first place and you see that `summary()` just does the appropriate thing based on the type of object it receives. This can also be useful for _discrete_ quantitative data.)
+
+## 5. Visualization
+OK that last bit was complicated. Luckily it is, at last, time for some graphs!
+
+### 5.1. When Not to Use a Histogram
+Do you remember the Foobar data? Let's use the properly parsed data to make a (simple) histogram of the `result` column:
+
+```{r, eval=FALSE}
+ggplot(FormattedGrades, aes(x=grade)) + geom_histogram()
+```
+
+Oh dear that didn't work. It's because the student grades data is categorical and it doesn't make sense to make a histogram from that sort of data.
+
+### 5.2. Bar Plot
+A better kind of graph to use for this is a bar plot or "bar chart" in which the heights of the bars are the counts for each roll (number of 1s, 2s, 3s, etc.). Now we can graph these data using `geom_bar()` in place of `geom_histogram`: 
+
+```{r barchart}
+ggplot(FormattedGrades, aes(x=grade)) + geom_bar(stat = "count")
+```
+
+In the above command `stat = "count"` tells `geom_bar()` to tally the counts of each level of the `grade` factor.
+
+Let's make it look a bit more presentable now by adding some axis titles:
+
+```{r prettybar}
+MyBars <- ggplot(FormattedGrades, aes(x=grade)) + geom_bar(stat="count", colour="black", fill="mistyrose")
+MyBars + labs(x = "Grade Achieved", y = "Number of Students") + theme_classic()
+```
+
+Can you see how we made a plot object and then added extra functions to it? And what we changed in this case was the labels on the axes and the overall theme (lighter background and no box).
+
+## 6. Summary
+OK. You should now know a bit about how to summarize continuous and discrete data using functions like `summary()` and graphs like histograms and bar plots. In the process you've learned quite a lot about the tidyverse package! This will put you in a good place to make all sorts of plots in the next installment...
+
+## 7. Good Practice
+At the end of the last worksheet I showed you about citations and gave some further reading. For this one I will show you some good practice, which is to run the following command to report on the environment used for your code:
+
+```{r, bibliography}
+sessionInfo()
+```

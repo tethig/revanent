@@ -1,0 +1,203 @@
+---
+title: "R Seminar Part 1: Univariate Quantitative Data"
+author: "Dr Ben Dickins"
+date: "16/12/2020"
+output:
+  html_document: default
+  pdf_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_knit$set(root.dir = "/Users/bio3dickib/Library/Mobile Documents/com~apple~CloudDocs/Github/revanent/graphs/")
+```
+
+## 1. Introduction
+This part of the seminar starts by looking at ways to summarize and visualize univariate quantitative data in R.
+
+Let's do some setup before we get started.
+
+## 2. Setup
+### 2.1. Download Data
+Now we need to access some data from this workflow. In particular we want to access to this file from the GitHub repository:
+
+- `foobar_heights.csv`
+
+If you download the repository, this will most likely be saved to your Downloads directory. Make sure that you have unzipped the folder and then you can access the above file within the _graphs_ directory.
+
+### 2.2 Quick Look
+Have a quick look at the CSV file, **being very careful not to save any changes** to it. You can use a simple text editor application for this (recommendations: Notepad++ for Windows, VSCode for MacOS).
+
+What do you see?
+
+Now I can tell you that `foobar_heights.csv` is the measured heights of 10,000 very small fictional plants called "foobars". The heights are a continuous, quantitative variable.
+
+### 2.3. Set the Working Directory
+Now it's time to open the RStudio application and ask RStudio to set the "working directory". The working directory is the place where R will look for files when reading data and where it will write data when you ask it to. Do you remember how to set the working directory from last time? Here are the steps:
+
+1. Go to the "Session" menu.
+2. Choose "Set Working Directory" / "Choose Directory..."
+3. Find the "analysis" folder you made in step 1.
+4. Click the "Open" button.
+
+The last step issues a `setwd()` command in the R console (bottom left) that tells R where the working directory is for this session.
+
+### 2.4. Load Library
+This step is new and we are doing it because this time we are going to be using some functions from a library called tidyverse. In this worksheet what you need to do is type (or copy and paste) the commands from the light grey boxes into the R console (bottom left pane of RStudio). The white boxes show expected output and you don't need to type or copy these.
+
+So let's load the tidyverse library - type the following one-line command and look out for output similar to the white boxes:
+```{r library}
+library(tidyverse)
+```
+
+The tidyverse is a collection of packages and you will see a list of these packages that have been loaded into memory with ticks next to them. Don't worry about the conflicts. These are normal (and are explained in my video). You can learn more about the tidyverse at the [tidyverse webpage](https://www.tidyverse.org).
+
+## 3. Loading and Inspecting our Data
+Now we're set up and it's time to load the data into R.
+
+### 3.1. Load Data
+We will begin by loading our dataset. Again, remember just to type in what is in the grey box (not the white boxes which show output):
+```{r load}
+Foobars <- read_csv("foobar_heights.csv")
+```
+
+The above command has read the CSV file into an object named `Foobars`. The `<-` arrow character points towards the object where the data is going. R has responded (white boxes) by telling us about the column specifications. That's a bit complex, but it really means how R has interpreted the data in each column.
+
+Now the object that the `read_csv()` function makes is a particular kind of object called a "tibble". So `Foobars` is a tibble. I know that sounds a bit silly, but a tibble is a special kind of table (introduced in tidyverse) and designed for storing all kinds of data.
+
+It's worth noting that we could have called the data object anything we want, but "Foobars" seems like a sensible name for the data in the CSV file.
+
+### 3.2. Examine Tibble
+Let's take a look at the `Foobars` tibble. To do that you can just type its name
+
+```{r cat}
+Foobars
+```
+See how it just prints out the first 10 data rows (as well as the header row). You can try additional commands such as `head(Foobars)` and `glimpse(Foobars)` to see the data in a few different ways. And then there is a command called `View()` (yes that's a capital letter "V"):
+```{r display, eval=FALSE}
+View(Foobars)
+```
+
+I can't show you the output in this worksheet, but `View()` is a special RStudio command which displays the data in the top left-hand pane. This shows you all the data in a format that looks a bit more like Microsoft Excel.
+
+### 3.3. Examine Variable
+It looks like the `height cm` column is the interesting one. The other column is just the order in which the observations were made and we are not particularly interested in that here. Let's start by taking a look at the height column. To refer to a column in a tibble we can use the following notation: `tibblename$columnname`. And in this case because of the space character in the column name we have to use the \` (backtick) character to quote the variable name. Let's try doing that first:
+
+```{r colref, attr.output='style="max-height: 100px;"'}
+Foobars$`height (cm)`
+```
+
+There was a lot of data there so I cheated and put it in a small scrollable box, and you will see only the first thousand of them! The numbers in square brackets are just row numbers (not important for us today).
+
+How much data was there? Let's use the `length()` function to find out:
+```{r length}
+length(Foobars$`height (cm)`)
+```
+
+Yes there are 10,000 entries which is represents a large number of observations (or fictional plants).
+
+## 4. Simple Descriptive Statistics
+Now it's time to do some simple descriptive statistics.
+
+### 4.1. Average
+Let's take the mean of the height column. Because there's a space in the column name, we'll have to use the `\`` character to quote the column name (on most keyboards that key is just to the left of the "1" key):
+```{r}
+mean(Foobars$`height (cm)`)
+```
+
+### 4.2. Summary
+We can also use the `summary()` function on this column:
+```{r}
+summary(Foobars$`height (cm)`)
+```
+
+Now this you see this give us lots of measures and has saved us using lots of individual functions like `min()`, `mean()`, `median()` and so on. Can you see how the mean and median are quite different from each other? That's something to notice.
+
+Now it is also possible to summarize an entire tibble:
+
+```{r}
+summary(Foobars)
+```
+
+In this case that's not very helpful, but it can be when you have multivariate data (lots of variables).
+
+## 5. Visualization
+Right: it's time for some graphs!
+
+### 5.1. Basic Histogram
+It's very easy to make a histogram. All we need to do is make sure we specify the right column in our data:
+
+```{r basichist}
+hist(Foobars$`height (cm)`)
+```
+
+### 5.2. Tidyverse Histogram
+Now this might seem a bit odd but I'm going to show you another way to do the same thing that will look harder at first. Try typing (or copying and pasting) this code:
+
+```{r tidyhist}
+ggplot(Foobars, aes(x=`height (cm)`)) + geom_histogram()
+```
+
+Now maybe you like that more? Maybe you don't, but this is a much more flexible way to build plots in R and we are using a package called _ggplot2_ which is part of the tidyverse.
+
+### 5.3. Grammar of Graphics
+Let's have a look at the `ggplot()` command in a bit more detail. First you should know that "gg" stands for "grammar of graphics" and the idea behind the ggplot2 package was to develop a consistent way of referring to elements of any plot.
+
+Here is the form of almost all ggplot2 functions:
+```{r, eval=FALSE}
+ggplot(tibblename, aes(x = varname1, y = varname2)) + geom_something(...)
+```
+Now that plus sign is really important and if you don't add the geom function afterwards there will be no graph! I will describe this in a bit more detail in the video, but take a look at this table too to see if it helps you to understand:
+
+| word in code | meaning |
+| :-: | ----------- |
+| `ggplot()` | This is the primary function for drawing all sort of graphs in ggplot2. |
+| `tibblename` | We have to name the tibble we are going to get our data from. In our last graph this was `Foobars`. |
+| `aes()` | This is a function we always need to specify to tell the `ggplot()` function how to map the variables the x, y (and sometimes other) axes. It is short for "aesthetic mappings". |
+| `geom_something()` | This tells `ggplot()` what kind of geometric shape or graph to draw. In our last graph this was `geom_histogram` because we wanted to draw a histogram. We will see some others in this worksheet in a moment. |
+| `...` | This means some more options - there are lots of "arguments" you can put inside these functions to change the way they behave. In our last graph we just left it blank for "default" behaviour. |
+
+### 5.4. Refining our Histogram
+Let's take a moment to make our plot a bit more refined before we move on:
+
+```{r prettyhist}
+ggplot(Foobars, aes(x=`height (cm)`)) + geom_histogram(binwidth = .1, colour = "black", fill = "lightblue")
+```
+
+Did you notice the "binwidth" warning messages before? You may also remember binning from previous lectures. You will see how we have now thought about and chosen a suitable width of bin to throw our data into. You can also see how we can tell `geom_histogram()` to add black lines around the bars and fill them in with a colour. Learn more about colours by typing:
+
+```{r colours, attr.output='style="max-height: 100px;"'}
+colours()
+```
+
+That's a lot of colours to play with!
+
+### 5.5. Saving out Plot
+Now you can save a plot using the "Export" button above the plot in the bottom right hand corner of the screen, but here's a special command for saving the last plot that we made:
+
+```{r, boxplot}
+ggsave("foobar_histogram.pdf", width = 10, height = 7, units = "in")
+```
+
+Now this saves the last plot to a file called `foorbar_histogram.pdf` with the dimensions as specified (in inches). Go take a look for the file. You can also learn a little more about the `ggsave()` function using the question mark: `?ggsave`.
+
+## 6. Summary
+OK. You should now know a bit about how to summarize data using functions like `summary()` and the histogram. In the process you've learned quite a lot about the tidyverse package! This will put you in a good place to make all sorts of plots in the next installment...
+
+## 7. Citations
+You can learn more about how to use any function or package using the question mark: `?packagename` or `?function`. You can also see the original citation for each package using the `citation()` function, so let's make sure I do this now!
+
+```{r, bibliography}
+citation("tidyverse")
+citation("ggplot2")
+```
+
+## 8. Further Reading
+Also the following are great references if you have oodles of time and want to learn more:
+
+| Reference (click for link) | Summary |
+| :-: | ----------- |
+| [R for Data Science](https://r4ds.had.co.nz/) | A fantastic guide to the tidyverse and to data analysis in general. Not a short study though. |
+| [R Graphics Cookbook](https://r-graphics.org/) | Full of recipes for nice plots. This assumes you have some understanding R already and know how to load data. But it's a great reference guide. |
+| [Quick-R](https://www.statmethods.net/) | This is a guidebook to statistical analysis in R. It is a bit advanced at the moment, but is also a useful reference. |
+| [R Graph Gallery](https://www.r-graph-gallery.com/) | This is just a great place to get ideas about graphs and engage the creative side of visualization. Unfortunately there are adverts on these pages. |

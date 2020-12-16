@@ -1,0 +1,190 @@
+---
+title: "R Seminar Part 3: Multivariate Data"
+author: "Dr Ben Dickins"
+date: "16/12/2020"
+output:
+  html_document: default
+  pdf_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_knit$set(root.dir = "/Users/bio3dickib/Library/Mobile Documents/com~apple~CloudDocs/Github/revanent/graphs/")
+```
+
+## Introduction
+Let's look at some data with multiple quantitative variables. We will look at air pollution measured in Nottingham City Centre over the last year. These data are sourced from the UK Department for Environment, Food & Rural Affairs:
+
+(C) Crown 2020 copyright Defra via uk-air.defra.gov.uk, licenced under the [Open Government Licence](http://www.nationalarchives.gov.uk/doc/open-government-licence/version/2/) (OGL).
+
+
+## Setup
+
+## Step 1: Data
+The next file we will look at is "pollution.csv".
+
+### Step 2: Setting the working directory
+set from previous...
+
+### Step 3: Load Library
+In addition to core tidyverse we will need to load a package called lubridate:
+```{r, message=FALSE}
+library(tidyverse)
+library(lubridate)
+```
+
+## Let's Get Going!
+
+### Step 1: Loading Data
+Let's load it into R using a tidyverse function:
+
+```{r data loading}
+pollution <- read_csv("pollution.csv", col_types = "cTdddc")
+```
+
+### Step 2: Look at data
+```{r, attr.output='style="max-height: 100px;"'}
+#View(pollution)
+#head(pollution)
+#glimpse(pollution)
+
+pollution$NO2
+hist(pollution$NO2)
+```
+
+### Step 3: Summary Data
+Let's take the mean of one variable:
+```{r}
+mean(pollution$NO2)
+```
+Bad result - why?
+
+Because of NA data - this is a common problem and many functions have options to deal with it:
+
+```{r}
+mean(pollution$NO2, na.rm = TRUE)
+summary(pollution$NO2)
+```
+
+The summary() function can also be applied to the whole tibble:
+```{r}
+summary(pollution)
+```
+
+### Step 4: Graphs
+
+Histogram:
+```{r}
+ggplot(pollution, aes(x=NO2)) + geom_histogram(colour = "black", fill = "lightblue")
+# controlling bin width
+ggplot(pollution, aes(x=NO2)) + geom_histogram(colour = "black", fill = "lightblue", binwidth = 10)
+```
+
+Two-variable scatter plot:
+```{r}
+ggplot(pollution, aes(x=NO2, y=PM2.5)) + geom_point()
+# changing the shape
+ggplot(pollution, aes(x=NO2, y=PM2.5)) + geom_point(shape=21)
+# adding transparency (so you can see density of points)
+ggplot(pollution, aes(x=NO2, y=PM2.5)) + geom_point(alpha=0.1)
+```
+
+Adding a linear regression line:
+```{r}
+ggplot(pollution, aes(x=NO2, y=PM2.5)) + geom_point(alpha=.1) + stat_smooth(method=lm)
+```
+ 
+Adding a new variable:
+```{r}
+pollution <- pollution %>% mutate(Year = year(date))
+```
+
+Plotting new plots for each year:
+```{r}
+pollution %>% na.omit() %>% ggplot(aes(x=NO2, y=PM2.5)) + geom_point(size=1, colour="darkorchid2") + facet_wrap(~ Year, ncol=3)
+```
+ 
+Boxplots!
+```{r}
+pollution %>% na.omit() %>% ggplot(aes(x=Year, y=NO2)) + geom_boxplot(aes(group=Year))
+```
+
+### Step 5: Bit of a dump I'm afraid - too little time to organise!
+
+Dataset built into dplyr (tidyverse):
+```{r}
+storms
+?storms
+summary(storms)
+```
+
+```{r}
+#point size with another variable:
+storms %>% filter(status == "hurricane") %>% na.omit() %>% ggplot(aes(x=pressure, y=wind, size=hu_diameter)) + geom_point(shape=21)
+# see how it sensibly adds a legend?
+```
+
+Make a new plot but don't plot it yet:
+```{r}
+stormplot <- storms %>% filter(status == "hurricane") %>% na.omit() %>% ggplot(aes(x=pressure, y=wind)) + geom_point()
+```
+
+Now plot it with a linear line:
+```{r}
+stormplot + stat_smooth(method=lm)
+```
+
+With a LOESS method:
+```{r}
+stormplot + stat_smooth(method=loess)
+```
+
+A little bit of linear modelling:
+```{r}
+model = lm(wind ~ pressure, storms)
+model
+summary(model)
+```
+
+Adding categorical to plot:
+```{r}
+storms %>% ggplot(aes(x=pressure, y=wind, colour=status)) + geom_point()
+```
+With categorical and facet wrap:
+```{r}
+stormplot + facet_wrap(~name)
+```
+
+Boxplot:
+```{r}
+storms %>% ggplot(aes(x=status, y=pressure, group=status)) + geom_boxplot()
+```
+
+## Tips dataset - direct load from web
+First allow me to acknowledge data source: https://github.com/mwaskom/seaborn-data
+
+ 
+```{r, tips}
+tips <- read_csv("https://raw.githubusercontent.com/mwaskom/seaborn-data/master/tips.csv")
+```
+
+Univariate plots of various kinds:
+```{r}
+tips %>% mutate(perc = tip/total_bill) %>% ggplot(aes(x=perc)) + geom_histogram()
+tips %>% mutate(perc = tip/total_bill) %>% ggplot(aes(x=perc)) + geom_boxplot()
+tips %>% mutate(perc = tip/total_bill) %>% ggplot(aes(x=smoker, y=perc)) + geom_violin()
+```
+
+Separating by a categorical variable:
+```{r}
+ggplot(tips, aes(x=day, y=total_bill)) + geom_violin() + facet_grid(smoker~.)
+```
+
+
+Very nice apporach to kernel density (violin) plots from recipe 6.9 in https://r-graphics.org:
+
+```{r}
+plot <- tips %>% mutate(perc = tip/total_bill) %>% ggplot(aes(x=day, y=perc)) + geom_violin(trim = FALSE)
+
+plot + geom_boxplot(width=.1, fill="black", outlier.colour=NA) + stat_summary(fun=mean, geom="point", fill="white", shape=21, size=2.5) + labs(x="Day of the Week", y="Tip (% of bill)")
+```
